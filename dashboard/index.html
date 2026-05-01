@@ -100,6 +100,9 @@
 <body>
 <script src="config.js"></script>
 <script src="api.js"></script>
+<script>
+  if (!requireAuth()) throw new Error('Auth required');
+  document.body.style.visibility = 'visible';
 
 <!-- Sidebar -->
 <aside class="sidebar">
