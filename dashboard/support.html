@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SMS CORE — Support</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1e2433; --surface: #252d3d; --surface-hi: #2d3748;
+    --border: #3d4a63; --border-hi: #4d5e7a;
+    --accent: #5b8af5; --accent-dim: rgba(91,138,245,0.12);
+    --text: #e2e8f4; --muted: #7a8ba8; --muted-dim: #4a5870;
+    --success: #4a9d72; --error: #e07a7a; --warn: #d4a843;
+  }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; }
+  .msym { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height: 1; vertical-align: middle; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+  .sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--accent-dim); border: 1px solid rgba(91,138,245,0.2); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .logo-ver { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  nav { flex: 1; padding: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: var(--accent); background: var(--accent-dim); }
+  .nav-badge { display: none; align-items: center; justify-content: center; background: var(--error); color: white; font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; margin-left: auto; }
+  .sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
+  .status-pill { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; background: rgba(74,157,114,0.08); border: 1px solid rgba(74,157,114,0.15); font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; animation: pulseAnim 2s ease-in-out infinite; }
+  @keyframes pulseAnim { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* Main */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { height: 54px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .content { padding: 20px; flex: 1; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-hi); background: rgba(255,255,255,0.03); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: #7aa0f7; box-shadow: 0 4px 14px rgba(91,138,245,0.28); }
+  .btn-success { background: rgba(74,157,114,0.12); color: var(--success); border-color: rgba(74,157,114,0.2); }
+  .btn-success:hover { background: rgba(74,157,114,0.2); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; gap: 4px; }
+
+  /* Filter tabs */
+  .filter-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .filter-tab { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px; }
+  .filter-tab:hover { border-color: var(--border-hi); color: var(--text); }
+  .filter-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .filter-tab .tab-count { font-family: 'DM Mono', monospace; font-size: 10px; background: rgba(255,255,255,0.07); padding: 1px 6px; border-radius: 999px; }
+
+  /* Tickets */
+  .tickets-list { display: flex; flex-direction: column; gap: 10px; }
+  .ticket-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    display: flex; align-items: flex-start; gap: 16px;
+    transition: border-color 0.15s;
+  }
+  .ticket-card:hover { border-color: var(--border-hi); }
+  .ticket-card.open { border-left: 3px solid var(--warn); }
+  .ticket-card.closed { border-left: 3px solid var(--muted-dim); opacity: 0.65; }
+
+  .ticket-icon {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .ticket-icon.open { background: rgba(212,168,67,0.12); border: 1px solid rgba(212,168,67,0.2); }
+  .ticket-icon.closed { background: rgba(122,139,168,0.1); border: 1px solid rgba(122,139,168,0.15); }
+
+  .ticket-body { flex: 1; min-width: 0; }
+  .ticket-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ticket-phone { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); }
+  .ticket-id { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .ticket-status { font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 999px; }
+  .ticket-status.open { background: rgba(212,168,67,0.12); color: var(--warn); border: 1px solid rgba(212,168,67,0.2); }
+  .ticket-status.closed { background: rgba(122,139,168,0.1); color: var(--muted); border: 1px solid rgba(122,139,168,0.15); }
+  .ticket-message { font-size: 14px; color: var(--text); line-height: 1.55; word-break: break-word; margin-bottom: 10px; }
+  .ticket-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .ticket-time { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.4; }
+
+  /* Stats row */
+  .mini-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .mini-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+  .mini-stat-val { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .mini-stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+  if (!requireAuth()) throw new Error('Auth required');
+</script>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><span class="msym" style="color:var(--accent);font-size:19px">terminal</span></div>
+    <div><div class="logo-name">SMS CORE</div><div class="logo-ver">v2.4.0</div></div>
+  </div>
+  <nav>
+    <a class="nav-item" href="index.html"><span class="msym" style="font-size:18px">forum</span> Message Logs</a>
+    <a class="nav-item active" href="support.html">
+      <span class="msym" style="font-size:18px">headset_mic</span> Support
+      <span class="nav-badge" id="support-badge"></span>
+    </a>
+    <a class="nav-item" href="user_controls.html"><span class="msym" style="font-size:18px">security</span> User Control</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="status-pill"><div class="pulse"></div>TELNYX ONLINE</div>
+    <button onclick="api.logout()" class="nav-item" style="width:100%;background:none;border:none;text-align:left">
+      <span class="msym" style="font-size:18px">logout</span> Sign Out
+    </button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div style="flex:1">
+      <span style="font-size:15px;font-weight:600">Support Tickets</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="loadTickets()"><span class="msym" id="refresh-icon">refresh</span> Refresh</button>
+  </div>
+
+  <div class="content">
+    <!-- Mini stats -->
+    <div class="mini-stats" id="mini-stats">
+      <div class="mini-stat">
+        <span class="msym" style="color:var(--warn);font-size:24px">pending</span>
+        <div><div class="mini-stat-val" style="color:var(--warn)" id="count-open">—</div><div class="mini-stat-label">Open</div></div>
+      </div>
+      <div class="mini-stat">
+        <span class="msym" style="color:var(--success);font-size:24px">check_circle</span>
+        <div><div class="mini-stat-val" style="color:var(--success)" id="count-closed">—</div><div class="mini-stat-label">Closed</div></div>
+      </div>
+      <div class="mini-stat">
+        <span class="msym" style="color:var(--accent);font-size:24px">confirmation_number</span>
+        <div><div class="mini-stat-val" style="color:var(--accent)" id="count-total">—</div><div class="mini-stat-label">Total</div></div>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" id="tab-open" onclick="setFilter('open')">
+        <span class="msym" style="font-size:15px">pending</span> Open <span class="tab-count" id="tab-open-count">0</span>
+      </button>
+      <button class="filter-tab" id="tab-closed" onclick="setFilter('closed')">
+        <span class="msym" style="font-size:15px">check_circle</span> Closed <span class="tab-count" id="tab-closed-count">0</span>
+      </button>
+      <button class="filter-tab" id="tab-all" onclick="setFilter('all')">
+        <span class="msym" style="font-size:15px">list</span> All
+      </button>
+    </div>
+
+    <!-- Tickets list -->
+    <div id="tickets-container">
+      <div class="empty-state"><span class="msym spin empty-icon">refresh</span><p>Loading tickets...</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allTickets = [];
+  let currentFilter = 'open';
+
+  async function loadTickets() {
+    const icon = document.getElementById('refresh-icon');
+    icon.classList.add('spin');
+    try {
+      allTickets = await api.supportTickets();
+      updateCounts();
+      renderTickets();
+      updateSupportBadge();
+    } catch (e) { showToast('Failed to load tickets: ' + e.message, 'error'); }
+    finally { icon.classList.remove('spin'); }
+  }
+
+  function updateCounts() {
+    const open = allTickets.filter(t => t.status === 'open').length;
+    const closed = allTickets.filter(t => t.status === 'closed').length;
+    document.getElementById('count-open').textContent = open;
+    document.getElementById('count-closed').textContent = closed;
+    document.getElementById('count-total').textContent = allTickets.length;
+    document.getElementById('tab-open-count').textContent = open;
+    document.getElementById('tab-closed-count').textContent = closed;
+  }
+
+  function setFilter(f) {
+    currentFilter = f;
+    ['open','closed','all'].forEach(k => {
+      document.getElementById(`tab-${k}`).classList.toggle('active', k === f);
+    });
+    renderTickets();
+  }
+
+  function renderTickets() {
+    const filtered = currentFilter === 'all'
+      ? allTickets
+      : allTickets.filter(t => t.status === currentFilter);
+
+    const container = document.getElementById('tickets-container');
+
+    if (!filtered.length) {
+      const msg = currentFilter === 'open'
+        ? 'No open tickets — all clear! 🎉'
+        : currentFilter === 'closed'
+        ? 'No closed tickets yet.'
+        : 'No tickets yet.';
+      container.innerHTML = `<div class="empty-state"><span class="msym empty-icon">headset_mic</span><p style="font-size:15px;font-weight:500;margin-bottom:6px">${msg}</p><p style="font-size:13px">Users send <span style="font-family:'DM Mono',monospace;color:var(--accent)">/support [message]</span> to reach you.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="tickets-list">${filtered.map(t => renderTicket(t)).join('')}</div>`;
+  }
+
+  function renderTicket(t) {
+    const isOpen = t.status === 'open';
+    const createdAt = fmtTime(t.created_at);
+    const closedAt = t.closed_at ? `Closed ${fmtTime(t.closed_at)}` : '';
+
+    return `<div class="ticket-card ${t.status}" id="ticket-${t.id}">
+      <div class="ticket-icon ${t.status}">
+        <span class="msym" style="color:${isOpen?'var(--warn)':'var(--muted)'};font-size:20px">${isOpen?'pending':'check_circle'}</span>
+      </div>
+      <div class="ticket-body">
+        <div class="ticket-header">
+          <span class="ticket-phone">${t.phone_number}</span>
+          <span class="ticket-id">#${t.id}</span>
+          <span class="ticket-status ${t.status}">${isOpen?'OPEN':'CLOSED'}</span>
+        </div>
+        <div class="ticket-message">${esc(t.message)}</div>
+        <div class="ticket-footer">
+          <div>
+            <span class="ticket-time"><span class="msym" style="font-size:12px">schedule</span> ${createdAt}</span>
+            ${closedAt ? `<span class="ticket-time" style="margin-left:12px"><span class="msym" style="font-size:12px">check</span> ${closedAt}</span>` : ''}
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-accent btn-sm" onclick="replyTo('${t.phone_number}')">
+              <span class="msym" style="font-size:14px">send</span> Reply
+            </button>
+            ${isOpen ? `<button class="btn btn-success btn-sm" onclick="closeTicket(${t.id})">
+              <span class="msym" style="font-size:14px">check_circle</span> Close
+            </button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  async function closeTicket(id) {
+    showConfirm('Mark this ticket as closed?', async () => {
+      try {
+        await api.closeTicket(id);
+        showToast('Ticket closed', 'success');
+        loadTickets();
+      } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+    });
+  }
+
+  function replyTo(phone) {
+    // Navigate to message logs with compose pre-filled
+    sessionStorage.setItem('compose_to', phone);
+    window.location.href = 'index.html';
+  }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+  function fmtTime(dt) {
+    if (!dt) return '—';
+    return new Date(dt+'Z').toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  }
+
+  loadTickets();
+  setInterval(loadTickets, 30000);
+</script>
+</body>
+</html>

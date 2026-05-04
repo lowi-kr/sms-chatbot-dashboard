@@ -1,11 +1,8 @@
 // admin-api.js
 // Cloudflare Worker that serves as the backend API for the SMS dashboard.
-// Deploy this as a SEPARATE worker (e.g. "sms-chatbot-admin-api").
-// It shares the same D1 database binding as your main sms-chatbot worker.
-// Set ADMIN_SECRET env var (encrypted) — the frontend sends it as Bearer token.
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*', // Restrict to your Pages domain in production
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -29,12 +26,10 @@ function checkAuth(request, env) {
 
 export default {
   async fetch(request, env) {
-    // Handle CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: CORS_HEADERS });
     }
 
-    // All routes except /api/login require auth
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -55,7 +50,6 @@ export default {
     //  CONTACTS / NUMBERS
     // =====================
 
-    // GET /api/contacts — list all phone numbers with message counts
     if (path === '/api/contacts' && request.method === 'GET') {
       const { results } = await db.prepare(`
         SELECT
@@ -77,7 +71,6 @@ export default {
       return json(results);
     }
 
-    // GET /api/contacts/:phone/conversations — all conversations for a number
     const contactConvMatch = path.match(/^\/api\/contacts\/(.+)\/conversations$/);
     if (contactConvMatch && request.method === 'GET') {
       const phone = decodeURIComponent(contactConvMatch[1]);
@@ -93,7 +86,6 @@ export default {
       return json(results);
     }
 
-    // GET /api/conversations/:id/messages — full message history
     const convMsgMatch = path.match(/^\/api\/conversations\/(\d+)\/messages$/);
     if (convMsgMatch && request.method === 'GET') {
       const id = convMsgMatch[1];
@@ -110,7 +102,6 @@ export default {
     //  SEND SMS
     // =====================
 
-    // POST /api/send — send an outbound SMS
     if (path === '/api/send' && request.method === 'POST') {
       const body = await request.json().catch(() => ({}));
       const { to, message } = body;
@@ -142,7 +133,6 @@ export default {
     //  BLACKLIST
     // =====================
 
-    // GET /api/blacklist
     if (path === '/api/blacklist' && request.method === 'GET') {
       const { results } = await db.prepare(
         `SELECT phone_number, reason, created_at FROM blacklist ORDER BY created_at DESC`
@@ -150,7 +140,6 @@ export default {
       return json(results);
     }
 
-    // POST /api/blacklist
     if (path === '/api/blacklist' && request.method === 'POST') {
       const body = await request.json().catch(() => ({}));
       const { phone_number, reason } = body;
@@ -161,7 +150,6 @@ export default {
       return json({ success: true });
     }
 
-    // DELETE /api/blacklist/:phone
     const blMatch = path.match(/^\/api\/blacklist\/(.+)$/);
     if (blMatch && request.method === 'DELETE') {
       const phone = decodeURIComponent(blMatch[1]);
@@ -173,7 +161,6 @@ export default {
     //  WHITELIST
     // =====================
 
-    // GET /api/whitelist
     if (path === '/api/whitelist' && request.method === 'GET') {
       const { results } = await db.prepare(
         `SELECT phone_number, label, created_at FROM whitelist ORDER BY created_at DESC`
@@ -181,7 +168,6 @@ export default {
       return json(results);
     }
 
-    // POST /api/whitelist
     if (path === '/api/whitelist' && request.method === 'POST') {
       const body = await request.json().catch(() => ({}));
       const { phone_number, label } = body;
@@ -192,7 +178,6 @@ export default {
       return json({ success: true });
     }
 
-    // DELETE /api/whitelist/:phone
     const wlMatch = path.match(/^\/api\/whitelist\/(.+)$/);
     if (wlMatch && request.method === 'DELETE') {
       const phone = decodeURIComponent(wlMatch[1]);
@@ -201,17 +186,52 @@ export default {
     }
 
     // =====================
+    //  SUPPORT TICKETS
+    // =====================
+
+    // GET /api/support — list all tickets (open first, then closed)
+    if (path === '/api/support' && request.method === 'GET') {
+      const { results } = await db.prepare(`
+        SELECT id, phone_number, message, status, created_at, closed_at
+        FROM support_tickets
+        ORDER BY CASE WHEN status = 'open' THEN 0 ELSE 1 END, created_at DESC
+      `).all();
+      return json(results);
+    }
+
+    // POST /api/support/:id/close — close a ticket
+    const supportCloseMatch = path.match(/^\/api\/support\/(\d+)\/close$/);
+    if (supportCloseMatch && request.method === 'POST') {
+      const id = supportCloseMatch[1];
+      const result = await db.prepare(`
+        UPDATE support_tickets 
+        SET status = 'closed', closed_at = CURRENT_TIMESTAMP 
+        WHERE id = ? AND status = 'open'
+      `).bind(id).run();
+      if (result.meta.changes === 0) return json({ error: 'Ticket not found or already closed' }, 404);
+      return json({ success: true });
+    }
+
+    // GET /api/support/open-count — for sidebar badge
+    if (path === '/api/support/open-count' && request.method === 'GET') {
+      const result = await db.prepare(
+        `SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'`
+      ).first();
+      return json({ count: result.count });
+    }
+
+    // =====================
     //  STATS
     // =====================
 
-    // GET /api/stats — dashboard summary numbers
     if (path === '/api/stats' && request.method === 'GET') {
-      const [totals, todayMsgs, activeConvs, blacklistCount, whitelistCount] = await Promise.all([
+      const [totals, todayMsgs, activeConvs, blacklistCount, whitelistCount, openTickets] = await Promise.all([
         db.prepare(`SELECT COUNT(*) as total_messages, COUNT(DISTINCT conversation_id) as total_conversations FROM messages`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM messages WHERE created_at >= datetime('now', '-1 day')`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM conversations WHERE is_active = 1`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM blacklist`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM whitelist`).first(),
+        db.prepare(`SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'`).first(),
       ]);
       return json({
         total_messages: totals.total_messages,
@@ -220,6 +240,7 @@ export default {
         active_conversations: activeConvs.count,
         blacklisted: blacklistCount.count,
         whitelisted: whitelistCount.count,
+        open_support_tickets: openTickets.count,
       });
     }
 
