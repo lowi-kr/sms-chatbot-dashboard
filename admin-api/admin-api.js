@@ -24,6 +24,30 @@ function checkAuth(request, env) {
   return token === env.ADMIN_SECRET;
 }
 
+async function getSupportSchema(db) {
+  const tableCandidates = ['support_tickets', 'support_requests', 'support'];
+  let table = null;
+  for (const name of tableCandidates) {
+    const hit = await db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`).bind(name).first();
+    if (hit?.name) { table = name; break; }
+  }
+  if (!table) return null;
+
+  const { results: cols } = await db.prepare(`PRAGMA table_info(${table})`).all();
+  const names = new Set((cols || []).map(c => c.name));
+  const pick = (choices, fallback = null) => choices.find(c => names.has(c)) || fallback;
+
+  return {
+    table,
+    id: pick(['id', 'ticket_id']),
+    phone: pick(['phone_number', 'phone', 'from_number']),
+    message: pick(['message', 'body', 'ticket_text']),
+    status: pick(['status', 'ticket_status'], 'status'),
+    createdAt: pick(['created_at', 'createdAt', 'opened_at']),
+    closedAt: pick(['closed_at', 'closedAt', 'resolved_at']),
+  };
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') {
@@ -191,22 +215,37 @@ export default {
 
     // GET /api/support — list all tickets (open first, then closed)
     if (path === '/api/support' && request.method === 'GET') {
+      const schema = await getSupportSchema(db);
+      if (!schema || !schema.id || !schema.phone || !schema.message || !schema.createdAt) {
+        return json([]);
+      }
+
+      const statusExpr = schema.status && schema.status !== 'status' ? `${schema.status} AS status` : `COALESCE(${schema.status}, 'open') AS status`;
+      const closedExpr = schema.closedAt ? `${schema.closedAt} AS closed_at` : `NULL AS closed_at`;
+
       const { results } = await db.prepare(`
-        SELECT id, phone_number, message, status, created_at, closed_at
-        FROM support_tickets
-        ORDER BY CASE WHEN status = 'open' THEN 0 ELSE 1 END, created_at DESC
+        SELECT ${schema.id} AS id, ${schema.phone} AS phone_number, ${schema.message} AS message,
+               ${statusExpr}, ${schema.createdAt} AS created_at, ${closedExpr}
+        FROM ${schema.table}
+        ORDER BY CASE WHEN LOWER(COALESCE(${schema.status}, 'open')) = 'open' THEN 0 ELSE 1 END, ${schema.createdAt} DESC
       `).all();
-      return json(results);
+      return json(results || []);
     }
 
     // POST /api/support/:id/close — close a ticket
     const supportCloseMatch = path.match(/^\/api\/support\/(\d+)\/close$/);
     if (supportCloseMatch && request.method === 'POST') {
+      const schema = await getSupportSchema(db);
+      if (!schema || !schema.id || !schema.status) return json({ error: 'Support table not configured' }, 500);
+
       const id = supportCloseMatch[1];
+      const assignments = [ `${schema.status} = 'closed'` ];
+      if (schema.closedAt) assignments.push(`${schema.closedAt} = CURRENT_TIMESTAMP`);
+
       const result = await db.prepare(`
-        UPDATE support_tickets 
-        SET status = 'closed', closed_at = CURRENT_TIMESTAMP 
-        WHERE id = ? AND status = 'open'
+        UPDATE ${schema.table}
+        SET ${assignments.join(', ')}
+        WHERE ${schema.id} = ? AND LOWER(COALESCE(${schema.status}, 'open')) = 'open'
       `).bind(id).run();
       if (result.meta.changes === 0) return json({ error: 'Ticket not found or already closed' }, 404);
       return json({ success: true });
@@ -214,10 +253,12 @@ export default {
 
     // GET /api/support/open-count — for sidebar badge
     if (path === '/api/support/open-count' && request.method === 'GET') {
+      const schema = await getSupportSchema(db);
+      if (!schema || !schema.status) return json({ count: 0 });
       const result = await db.prepare(
-        `SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'`
+        `SELECT COUNT(*) as count FROM ${schema.table} WHERE LOWER(COALESCE(${schema.status}, 'open')) = 'open'`
       ).first();
-      return json({ count: result.count });
+      return json({ count: Number(result?.count || 0) });
     }
 
     // =====================
@@ -231,7 +272,11 @@ export default {
         db.prepare(`SELECT COUNT(*) as count FROM conversations WHERE is_active = 1`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM blacklist`).first(),
         db.prepare(`SELECT COUNT(*) as count FROM whitelist`).first(),
-        db.prepare(`SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'`).first(),
+        (async () => {
+          const schema = await getSupportSchema(db);
+          if (!schema || !schema.status) return { count: 0 };
+          return db.prepare(`SELECT COUNT(*) as count FROM ${schema.table} WHERE LOWER(COALESCE(${schema.status}, 'open')) = 'open'`).first();
+        })(),
       ]);
       return json({
         total_messages: totals.total_messages,
