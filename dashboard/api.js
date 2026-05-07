@@ -4,10 +4,7 @@ const getApiUrl = () => sessionStorage.getItem('sms_api') || window.SMS_CORE_API
 const getToken = () => sessionStorage.getItem('sms_token') || '';
 
 function requireAuth() {
-  if (!getToken()) {
-    window.location.href = 'login.html';
-    return false;
-  }
+  if (!getToken()) { window.location.href = 'login.html'; return false; }
   return true;
 }
 
@@ -22,17 +19,8 @@ async function apiFetch(path, options = {}) {
     },
   });
 
-  if (resp.status === 401) {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-    throw new Error('Unauthorized');
-  }
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({ error: resp.statusText }));
-    throw new Error(err.error || 'API error');
-  }
-
+  if (resp.status === 401) { sessionStorage.clear(); window.location.href = 'login.html'; throw new Error('Unauthorized'); }
+  if (!resp.ok) { const err = await resp.json().catch(() => ({ error: resp.statusText })); throw new Error(err.error || 'API error'); }
   return resp.json();
 }
 
@@ -44,7 +32,9 @@ const api = {
   stats: () => api.get('/api/stats'),
   contacts: () => api.get('/api/contacts'),
   contactConversations: (phone) => api.get(`/api/contacts/${encodeURIComponent(phone)}/conversations`),
-  conversationMessages: (id) => api.get(`/api/conversations/${id}/messages`),
+  contactSupport: (phone) => api.get(`/api/contacts/${encodeURIComponent(phone)}/support`),
+
+  // Note: conversationMessages removed — messages are encrypted and not readable by admin
 
   sendSMS: (to, message) => api.post('/api/send', { to, message }),
 
@@ -56,7 +46,6 @@ const api = {
   addWhitelist: (phone, label) => api.post('/api/whitelist', { phone_number: phone, label }),
   removeWhitelist: (phone) => api.delete(`/api/whitelist/${encodeURIComponent(phone)}`),
 
-  // Support tickets
   supportTickets: () => api.get('/api/support'),
   closeTicket: (id) => api.post(`/api/support/${id}/close`, {}),
   supportOpenCount: () => api.get('/api/support/open-count'),
@@ -64,18 +53,14 @@ const api = {
   logout: () => { sessionStorage.clear(); window.location.href = 'login.html'; },
 };
 
-// ---- Sidebar badge updater (call on every page load) ----
+// ---- Sidebar support badge (called on every page) ----
 async function updateSupportBadge() {
   try {
     const { count } = await api.supportOpenCount();
     const badge = document.getElementById('support-badge');
     if (!badge) return;
-    if (count > 0) {
-      badge.textContent = count;
-      badge.style.display = 'inline-flex';
-    } else {
-      badge.style.display = 'none';
-    }
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
   } catch (_) {}
 }
 
@@ -83,8 +68,8 @@ async function updateSupportBadge() {
 function showToast(message, type = 'success') {
   const colors = {
     success: 'background:#2a3f2e;border-color:#4a8f5a;color:#7dd99a',
-    error: 'background:#3f2a2e;border-color:#8f4a55;color:#d97d8a',
-    info: 'background:#2a333f;border-color:#4a6a8f;color:#7daad9'
+    error:   'background:#3f2a2e;border-color:#8f4a55;color:#d97d8a',
+    info:    'background:#2a333f;border-color:#4a6a8f;color:#7daad9',
   };
   const icons = { success: 'check_circle', error: 'error', info: 'info' };
   const t = document.createElement('div');
@@ -118,7 +103,7 @@ function showConfirm(message, onConfirm) {
 // ---- Global styles ----
 const styleTag = document.createElement('style');
 styleTag.textContent = `
-  @keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes toastIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)} }
   @keyframes spin { to{transform:rotate(360deg)} }
   .spin { animation:spin 0.7s linear infinite; display:inline-block; }
