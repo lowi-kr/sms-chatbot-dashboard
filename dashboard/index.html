@@ -19,156 +19,95 @@
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; }
   .msym { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height: 1; vertical-align: middle; }
 
-  /* ---- Sidebar ---- */
-  .sidebar {
-    width: 220px; flex-shrink: 0;
-    background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
-  }
-  .sidebar-logo {
-    padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .logo-icon {
-    width: 34px; height: 34px; background: var(--accent-dim);
-    border: 1px solid rgba(91,138,245,0.2); border-radius: 9px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  /* Sidebar */
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+  .sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--accent-dim); border: 1px solid rgba(91,138,245,0.2); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .logo-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
   .logo-ver { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
-
   nav { flex: 1; padding: 8px; }
-  .nav-item {
-    display: flex; align-items: center; gap: 9px;
-    padding: 9px 12px; border-radius: 8px;
-    color: var(--muted); font-size: 13px; font-weight: 500;
-    cursor: pointer; text-decoration: none;
-    transition: all 0.15s; position: relative;
-    margin-bottom: 2px;
-  }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
   .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
   .nav-item.active { color: var(--accent); background: var(--accent-dim); }
-  .nav-badge {
-    display: none; align-items: center; justify-content: center;
-    background: var(--error); color: white;
-    font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace;
-    min-width: 18px; height: 18px; padding: 0 5px;
-    border-radius: 999px; margin-left: auto;
-  }
-
+  .nav-badge { display: none; align-items: center; justify-content: center; background: var(--error); color: white; font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; margin-left: auto; }
   .sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
-  .status-pill {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 10px; border-radius: 7px;
-    background: rgba(74,157,114,0.08); border: 1px solid rgba(74,157,114,0.15);
-    font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace;
-    margin-bottom: 6px;
-  }
+  .status-pill { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; background: rgba(74,157,114,0.08); border: 1px solid rgba(74,157,114,0.15); font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
   .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; animation: pulseAnim 2s ease-in-out infinite; }
   @keyframes pulseAnim { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-  /* ---- Main ---- */
+  /* Main */
   .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-  .topbar {
-    height: 54px; background: var(--surface); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 20px; gap: 12px;
-    position: sticky; top: 0; z-index: 50;
-  }
+  .topbar { height: 54px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; position: sticky; top: 0; z-index: 50; }
   .search-wrap { position: relative; flex: 1; max-width: 320px; }
   .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 17px; pointer-events: none; }
-  .search-input {
-    width: 100%; padding: 8px 12px 8px 34px;
-    background: var(--surface-hi); border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif;
-    outline: none; transition: border-color 0.2s;
-  }
+  .search-input { width: 100%; padding: 8px 12px 8px 34px; background: var(--surface-hi); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
   .search-input:focus { border-color: var(--accent); }
   .search-input::placeholder { color: var(--muted); }
-
   .content { padding: 20px; flex: 1; }
 
-  /* ---- Stat cards ---- */
+  /* Stats */
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 18px 20px;
-  }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
   .stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
   .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
 
-  /* ---- Table card ---- */
+  /* Table */
   .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    padding: 10px 16px; text-align: left;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
-    color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border);
-    font-family: 'DM Mono', monospace; white-space: nowrap;
-  }
+  thead th { padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; white-space: nowrap; }
   tbody tr { border-bottom: 1px solid rgba(61,74,99,0.4); transition: background 0.1s; cursor: pointer; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: rgba(255,255,255,0.025); }
   tbody td { padding: 12px 16px; vertical-align: middle; }
 
-  /* ---- Badges ---- */
+  /* Badges */
   .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
   .badge-blocked { background: rgba(224,122,122,0.12); color: var(--error); border: 1px solid rgba(224,122,122,0.2); }
   .badge-vip { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(91,138,245,0.2); }
 
-  /* ---- Buttons ---- */
+  /* Buttons */
   .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
   .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
   .btn-ghost:hover { color: var(--text); border-color: var(--border-hi); background: rgba(255,255,255,0.03); }
-  .btn-accent { background: var(--accent); color: white; border-color: transparent; }
+  .btn-accent { background: var(--accent); color: white; }
   .btn-accent:hover { background: #7aa0f7; box-shadow: 0 4px 14px rgba(91,138,245,0.28); }
   .btn-danger { background: rgba(224,122,122,0.1); color: var(--error); border-color: rgba(224,122,122,0.2); }
   .btn-danger:hover { background: rgba(224,122,122,0.18); }
   .btn-sm { padding: 5px 10px; font-size: 12px; gap: 4px; }
+  select { background: var(--surface-hi); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 12px; outline: none; font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
-  /* ---- Selects ---- */
-  select {
-    background: var(--surface-hi); border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; padding: 6px 10px;
-    font-size: 12px; outline: none; font-family: 'DM Sans', sans-serif; cursor: pointer;
-  }
-
-  /* ---- Conversation panel ---- */
-  .conv-panel {
-    position: fixed; top: 0; right: 0; width: 460px; height: 100vh;
-    background: var(--surface); border-left: 1px solid var(--border);
-    z-index: 150; display: flex; flex-direction: column;
-    transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-    box-shadow: -8px 0 32px rgba(0,0,0,0.25);
-  }
+  /* Contact panel */
+  .conv-panel { position: fixed; top: 0; right: 0; width: 420px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 150; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); box-shadow: -8px 0 32px rgba(0,0,0,0.25); }
   .conv-panel.open { transform: translateX(0); }
-  .panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-  .messages-area { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-  .msg-bubble { max-width: 84%; padding: 9px 13px; border-radius: 11px; font-size: 13px; line-height: 1.55; }
-  .msg-user { background: rgba(91,138,245,0.1); border: 1px solid rgba(91,138,245,0.18); border-bottom-left-radius: 3px; }
-  .msg-ai { background: var(--surface-hi); border: 1px solid var(--border); border-bottom-right-radius: 3px; }
-  .msg-time { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; padding: 0 3px; }
-  .conv-tabs { padding: 10px 14px; border-bottom: 1px solid var(--border); overflow-x: auto; white-space: nowrap; }
-  .conv-tab {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 11px; border-radius: 20px; border: 1px solid var(--border);
-    background: var(--surface-hi); color: var(--muted); font-size: 11px;
-    cursor: pointer; margin-right: 6px; white-space: nowrap; transition: all 0.15s;
-    font-family: 'DM Mono', monospace;
-  }
-  .conv-tab:hover, .conv-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-  .quick-reply-area { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
-  textarea {
-    flex: 1; background: var(--surface-hi); border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; padding: 8px 12px;
-    font-size: 13px; font-family: 'DM Sans', sans-serif; resize: none; outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea:focus { border-color: var(--accent); }
+  .panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-  /* ---- Compose modal ---- */
+  /* Support tickets in panel */
+  .panel-tickets { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .panel-ticket { background: var(--surface-hi); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; border-left: 3px solid var(--warn); }
+  .panel-ticket.closed { border-left-color: var(--muted-dim); opacity: 0.6; }
+  .panel-ticket-header { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .panel-ticket-status { font-size: 9px; font-weight: 700; font-family: 'DM Mono', monospace; padding: 2px 6px; border-radius: 999px; }
+  .panel-ticket-status.open { background: rgba(212,168,67,0.15); color: var(--warn); }
+  .panel-ticket-status.closed { background: rgba(122,139,168,0.1); color: var(--muted); }
+  .panel-ticket-msg { font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; }
+  .panel-ticket-time { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 7px; }
+  .panel-empty { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 13px; }
+
+  /* Stats in panel */
+  .panel-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .panel-stat { background: var(--surface-hi); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; }
+  .panel-stat-val { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .panel-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  /* Reply area */
+  .reply-area { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+  textarea { flex: 1; background: var(--surface-hi); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; resize: none; outline: none; transition: border-color 0.2s; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  /* Compose modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
   .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 24px 64px rgba(0,0,0,0.4); }
   .modal-input { width: 100%; background: var(--surface-hi); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 13px; font-size: 13px; font-family: 'DM Mono', monospace; outline: none; transition: border-color 0.2s; }
@@ -176,17 +115,13 @@
   .modal-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; font-family: 'DM Mono', monospace; }
   textarea.modal-input { resize: vertical; min-height: 90px; font-family: 'DM Sans', sans-serif; }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 <script src="config.js"></script>
 <script src="api.js"></script>
-<script>
-  if (!requireAuth()) throw new Error('Auth required');
-</script>
+<script>if (!requireAuth()) throw new Error('Auth required');</script>
 
 <!-- Sidebar -->
 <aside class="sidebar">
@@ -222,7 +157,6 @@
   </div>
 
   <div class="content">
-    <!-- Stats -->
     <div class="stats-grid" id="stats-row">
       <div class="stat-card"><div class="stat-label"><span class="msym" style="color:var(--accent);font-size:15px">today</span>Today</div><div class="stat-value" style="color:var(--accent)">—</div></div>
       <div class="stat-card"><div class="stat-label"><span class="msym" style="color:var(--success);font-size:15px">chat</span>Total</div><div class="stat-value" style="color:var(--success)">—</div></div>
@@ -231,7 +165,6 @@
       <div class="stat-card"><div class="stat-label"><span class="msym" style="color:#a78bfa;font-size:15px">verified</span>Whitelisted</div><div class="stat-value" style="color:#a78bfa">—</div></div>
     </div>
 
-    <!-- Contacts table -->
     <div class="table-card">
       <div class="table-header">
         <div style="flex:1">
@@ -269,7 +202,7 @@
   </div>
 </div>
 
-<!-- Conversation panel -->
+<!-- Contact panel — support tickets + reply -->
 <div class="conv-panel" id="conv-panel">
   <div class="panel-header">
     <button onclick="closePanel()" class="btn btn-ghost btn-sm" style="padding:6px"><span class="msym">arrow_back</span></button>
@@ -277,15 +210,39 @@
       <div id="panel-phone" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent)"></div>
       <div id="panel-sub" style="font-size:11px;color:var(--muted)"></div>
     </div>
-    <button id="panel-send-btn" class="btn btn-accent btn-sm" onclick="openComposeTo()"><span class="msym" style="font-size:16px">send</span></button>
     <button id="panel-block-btn" class="btn btn-danger btn-sm" onclick="toggleBlockPanel()"></button>
   </div>
-  <div class="conv-tabs" id="conv-tabs"><span style="font-size:12px;color:var(--muted)">Loading...</span></div>
-  <div class="messages-area" id="messages-area"><div style="text-align:center;color:var(--muted);margin-top:40px;font-size:13px">Select a conversation</div></div>
-  <div class="quick-reply-area">
-    <textarea id="quick-reply" placeholder="Quick reply... (Ctrl+Enter to send)" rows="2"
-      onkeydown="if(event.ctrlKey&&event.key==='Enter')sendQuickReply()"></textarea>
-    <button class="btn btn-accent" style="align-self:flex-end;padding:9px 13px" onclick="sendQuickReply()"><span class="msym">send</span></button>
+
+  <!-- Contact stats -->
+  <div class="panel-stats" id="panel-stats">
+    <div class="panel-stat"><div class="panel-stat-val" style="color:var(--accent)" id="ps-today">—</div><div class="panel-stat-label">Today</div></div>
+    <div class="panel-stat"><div class="panel-stat-val" style="color:var(--text)" id="ps-total">—</div><div class="panel-stat-label">All-Time</div></div>
+    <div class="panel-stat"><div class="panel-stat-val" style="color:var(--muted)" id="ps-convs">—</div><div class="panel-stat-label">Convs</div></div>
+  </div>
+
+  <!-- Support tickets section -->
+  <div style="padding:10px 14px 6px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px">
+    <span class="msym" style="color:var(--warn);font-size:16px">headset_mic</span>
+    <span style="font-size:12px;font-weight:600;color:var(--text)">Support Tickets</span>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto">from this contact</span>
+  </div>
+  <div class="panel-tickets" id="panel-tickets">
+    <div class="panel-empty">Loading...</div>
+  </div>
+
+  <!-- Privacy notice -->
+  <div style="padding:8px 14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;background:rgba(91,138,245,0.04);flex-shrink:0">
+    <span class="msym" style="color:var(--accent);font-size:15px">lock</span>
+    <span style="font-size:11px;color:var(--muted)">Conversation messages are end-to-end encrypted</span>
+  </div>
+
+  <!-- Reply area -->
+  <div class="reply-area">
+    <textarea id="quick-reply" placeholder="Reply via SMS... (Ctrl+Enter to send)" rows="3"
+      onkeydown="if(event.ctrlKey&&event.key==='Enter')sendReply()"></textarea>
+    <button class="btn btn-accent" style="align-self:flex-end;padding:9px 13px" onclick="sendReply()">
+      <span class="msym">send</span>
+    </button>
   </div>
 </div>
 
@@ -315,7 +272,6 @@
   let allContacts = [];
   let panelPhone = null;
   let panelIsBlocked = false;
-  let activeConvId = null;
 
   async function loadData() {
     const icon = document.getElementById('refresh-icon');
@@ -331,7 +287,6 @@
   }
 
   function renderStats(s) {
-    const row = document.getElementById('stats-row');
     const items = [
       { label: 'Today', icon: 'today', color: 'var(--accent)', value: s.messages_today },
       { label: 'Total Msgs', icon: 'chat', color: 'var(--success)', value: s.total_messages },
@@ -339,10 +294,10 @@
       { label: 'Blocked', icon: 'block', color: 'var(--error)', value: s.blacklisted },
       { label: 'Whitelisted', icon: 'verified', color: '#a78bfa', value: s.whitelisted },
     ];
-    row.innerHTML = items.map(c => `
+    document.getElementById('stats-row').innerHTML = items.map(c => `
       <div class="stat-card">
         <div class="stat-label"><span class="msym" style="color:${c.color};font-size:15px">${c.icon}</span>${c.label}</div>
-        <div class="stat-value" style="color:${c.color}">${(c.value ?? 0).toLocaleString()}</div>
+        <div class="stat-value" style="color:${c.color}">${(c.value??0).toLocaleString()}</div>
       </div>`).join('');
   }
 
@@ -354,15 +309,15 @@
     let f = allContacts.filter(c => {
       const mq = !q || c.phone_number.toLowerCase().includes(q);
       const ms = !status ||
-        (status === 'blocked' && c.is_blacklisted) ||
-        (status === 'whitelisted' && c.is_whitelisted) ||
-        (status === 'normal' && !c.is_blacklisted && !c.is_whitelisted);
+        (status==='blocked' && c.is_blacklisted) ||
+        (status==='whitelisted' && c.is_whitelisted) ||
+        (status==='normal' && !c.is_blacklisted && !c.is_whitelisted);
       return mq && ms;
     });
-    f.sort((a, b) => {
-      if (sort === 'total_messages') return (b.total_messages||0) - (a.total_messages||0);
-      if (sort === 'messages_today') return (b.messages_today||0) - (a.messages_today||0);
-      return new Date(b.last_seen||0) - new Date(a.last_seen||0);
+    f.sort((a,b) => {
+      if (sort==='total_messages') return (b.total_messages||0)-(a.total_messages||0);
+      if (sort==='messages_today') return (b.messages_today||0)-(a.messages_today||0);
+      return new Date(b.last_seen||0)-new Date(a.last_seen||0);
     });
     document.getElementById('contacts-count').textContent = `${f.length} of ${allContacts.length} contacts`;
     renderContacts(f);
@@ -370,17 +325,14 @@
 
   function renderContacts(contacts) {
     const tbody = document.getElementById('contacts-body');
-    if (!contacts.length) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No contacts found</td></tr>`;
-      return;
-    }
+    if (!contacts.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No contacts found</td></tr>`; return; }
     tbody.innerHTML = contacts.map(c => {
       const badge = c.is_blacklisted
         ? `<span class="badge badge-blocked"><span class="msym" style="font-size:11px">block</span>Blocked</span>`
         : c.is_whitelisted
         ? `<span class="badge badge-vip"><span class="msym" style="font-size:11px">verified</span>VIP</span>`
         : `<span style="font-size:11px;color:var(--muted)">Normal</span>`;
-      return `<tr onclick="openPanel('${c.phone_number}', ${!!c.is_blacklisted})" style="${c.is_blacklisted?'opacity:0.55':''}">
+      return `<tr onclick="openPanel('${c.phone_number}', ${!!c.is_blacklisted}, ${c.messages_today||0}, ${c.total_messages||0}, ${c.conversation_count||0})" style="${c.is_blacklisted?'opacity:0.55':''}">
         <td><span style="font-family:'DM Mono',monospace;color:var(--accent);font-size:12px">${c.phone_number}</span></td>
         <td>${badge}</td>
         <td style="text-align:right;font-family:'DM Mono',monospace;color:${c.messages_today>0?'var(--success)':'var(--muted)'}">${c.messages_today??0}</td>
@@ -402,106 +354,110 @@
   }
 
   // ---- Panel ----
-  async function openPanel(phone, isBlocked) {
-    panelPhone = phone; panelIsBlocked = isBlocked;
+  async function openPanel(phone, isBlocked, today, total, convs) {
+    panelPhone = phone;
+    panelIsBlocked = isBlocked;
     document.getElementById('panel-phone').textContent = phone;
-    document.getElementById('panel-sub').textContent = 'Loading...';
+    document.getElementById('panel-sub').textContent = 'Last active ' + timeAgo(allContacts.find(c=>c.phone_number===phone)?.last_seen);
+    document.getElementById('ps-today').textContent = today;
+    document.getElementById('ps-total').textContent = total.toLocaleString();
+    document.getElementById('ps-convs').textContent = convs;
     document.getElementById('conv-panel').classList.add('open');
     updatePanelBlockBtn();
-    try {
-      const convs = await api.contactConversations(phone);
-      document.getElementById('panel-sub').textContent = `${convs.length} conversation${convs.length!==1?'s':''}`;
-      renderConvTabs(convs);
-      if (convs.length > 0) loadMessages(convs[0].id);
-    } catch (e) { document.getElementById('panel-sub').textContent = 'Error loading'; }
+    loadPanelTickets(phone);
   }
 
   function closePanel() { document.getElementById('conv-panel').classList.remove('open'); panelPhone = null; }
 
-  function renderConvTabs(convs) {
-    const tabs = document.getElementById('conv-tabs');
-    if (!convs.length) { tabs.innerHTML = '<span style="font-size:12px;color:var(--muted)">No conversations</span>'; return; }
-    tabs.innerHTML = convs.map(c => `
-      <button class="conv-tab ${c.is_active?'active':''}" id="tab-${c.id}" onclick="loadMessages(${c.id})">
-        ${c.is_active?'<span style="width:5px;height:5px;border-radius:50%;background:var(--success)"></span>':''}
-        #${c.id} · ${c.message_count}msg
-      </button>`).join('');
+  async function loadPanelTickets(phone) {
+    const area = document.getElementById('panel-tickets');
+    area.innerHTML = '<div class="panel-empty"><span class="msym spin">refresh</span></div>';
+    try {
+      const tickets = await api.contactSupport(phone);
+      if (!tickets.length) {
+        area.innerHTML = '<div class="panel-empty"><span class="msym" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.3">headset_mic</span>No support tickets from this contact</div>';
+        return;
+      }
+      area.innerHTML = tickets.map(t => `
+        <div class="panel-ticket ${t.status}">
+          <div class="panel-ticket-header">
+            <span class="panel-ticket-status ${t.status}">${t.status.toUpperCase()}</span>
+            <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">#${t.id}</span>
+            ${t.status==='open' ? `<button class="btn btn-sm" style="margin-left:auto;padding:3px 8px;font-size:11px;background:rgba(74,157,114,0.1);color:var(--success);border:1px solid rgba(74,157,114,0.2);border-radius:6px" onclick="closeTicketFromPanel(${t.id})">
+              <span class="msym" style="font-size:13px">check</span> Close
+            </button>` : ''}
+          </div>
+          <div class="panel-ticket-msg">${esc(t.message)}</div>
+          <div class="panel-ticket-time"><span class="msym" style="font-size:11px">schedule</span> ${fmtTime(t.created_at)}</div>
+        </div>`).join('');
+    } catch (e) {
+      area.innerHTML = `<div class="panel-empty" style="color:var(--error)">Error: ${e.message}</div>`;
+    }
   }
 
-  async function loadMessages(convId) {
-    activeConvId = convId;
-    document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
-    const tab = document.getElementById(`tab-${convId}`);
-    if (tab) tab.classList.add('active');
-    const area = document.getElementById('messages-area');
-    area.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px"><span class="msym spin">refresh</span></div>';
+  async function closeTicketFromPanel(id) {
     try {
-      const msgs = await api.conversationMessages(convId);
-      if (!msgs.length) { area.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px">No messages yet</div>'; return; }
-      area.innerHTML = msgs.map(m => {
-        const isUser = m.role === 'user';
-        return `<div style="display:flex;flex-direction:column;align-items:${isUser?'flex-start':'flex-end'}">
-          <div class="msg-bubble ${isUser?'msg-user':'msg-ai'}">${esc(m.content)}</div>
-          <div class="msg-time" style="align-self:${isUser?'flex-start':'flex-end'}">
-            <span class="msym" style="font-size:10px;color:${isUser?'var(--accent)':'var(--success)'}">${isUser?'person':'smart_toy'}</span>
-            ${fmtTime(m.created_at)}
-          </div>
-        </div>`;
-      }).join('');
-      area.scrollTop = area.scrollHeight;
-    } catch (e) { area.innerHTML = `<div style="text-align:center;color:var(--error);padding:40px;font-size:13px">Error: ${e.message}</div>`; }
+      await api.closeTicket(id);
+      showToast('Ticket closed');
+      loadPanelTickets(panelPhone);
+      updateSupportBadge();
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
   }
 
   function updatePanelBlockBtn() {
     const btn = document.getElementById('panel-block-btn');
-    if (panelIsBlocked) { btn.className = 'btn btn-accent btn-sm'; btn.innerHTML = '<span class="msym" style="font-size:16px">lock_open</span>'; btn.title = 'Unblock'; }
-    else { btn.className = 'btn btn-danger btn-sm'; btn.innerHTML = '<span class="msym" style="font-size:16px">block</span>'; btn.title = 'Block'; }
+    if (panelIsBlocked) { btn.className='btn btn-accent btn-sm'; btn.innerHTML='<span class="msym" style="font-size:16px">lock_open</span>'; btn.title='Unblock'; }
+    else { btn.className='btn btn-danger btn-sm'; btn.innerHTML='<span class="msym" style="font-size:16px">block</span>'; btn.title='Block'; }
   }
 
   function toggleBlockPanel() { if (panelIsBlocked) unblockContact(panelPhone); else blockContact(panelPhone); }
 
   async function blockContact(phone) {
     showConfirm(`Block <strong style="color:var(--accent);font-family:'DM Mono',monospace">${phone}</strong>? They will stop receiving bot responses.`, async () => {
-      try { await api.addBlacklist(phone, 'Blocked via dashboard'); showToast(`${phone} blocked`); if (phone===panelPhone){panelIsBlocked=true;updatePanelBlockBtn();} loadData(); }
-      catch (e) { showToast('Block failed: ' + e.message, 'error'); }
+      try { await api.addBlacklist(phone, 'Blocked via dashboard'); showToast(`${phone} blocked`); if(phone===panelPhone){panelIsBlocked=true;updatePanelBlockBtn();} loadData(); }
+      catch(e) { showToast('Block failed: '+e.message,'error'); }
     });
   }
 
   async function unblockContact(phone) {
-    try { await api.removeBlacklist(phone); showToast(`${phone} unblocked`); if (phone===panelPhone){panelIsBlocked=false;updatePanelBlockBtn();} loadData(); }
-    catch (e) { showToast('Unblock failed: ' + e.message, 'error'); }
+    try { await api.removeBlacklist(phone); showToast(`${phone} unblocked`); if(phone===panelPhone){panelIsBlocked=false;updatePanelBlockBtn();} loadData(); }
+    catch(e) { showToast('Unblock failed: '+e.message,'error'); }
+  }
+
+  // ---- Reply ----
+  async function sendReply() {
+    const msg = document.getElementById('quick-reply').value.trim();
+    if (!msg || !panelPhone) return;
+    try { await api.sendSMS(panelPhone, msg); document.getElementById('quick-reply').value=''; showToast('Sent!'); }
+    catch(e) { showToast('Send failed: '+e.message,'error'); }
   }
 
   // ---- Compose ----
   function openComposeModal() { document.getElementById('compose-to').value=''; document.getElementById('compose-msg').value=''; document.getElementById('compose-count').textContent='0 / 160'; document.getElementById('compose-modal').style.display='flex'; setTimeout(()=>document.getElementById('compose-to').focus(),50); }
   function openComposeTo(phone) { openComposeModal(); if(phone){document.getElementById('compose-to').value=phone; setTimeout(()=>document.getElementById('compose-msg').focus(),50);} }
   function closeComposeModal() { document.getElementById('compose-modal').style.display='none'; }
-  document.getElementById('compose-msg').addEventListener('input', function(){ document.getElementById('compose-count').textContent=`${this.value.length} / 160`; });
+  document.getElementById('compose-msg').addEventListener('input',function(){document.getElementById('compose-count').textContent=`${this.value.length} / 160`;});
 
   async function sendCompose() {
-    const to = document.getElementById('compose-to').value.trim();
-    const msg = document.getElementById('compose-msg').value.trim();
-    if (!to||!msg) { showToast('Fill in both fields','error'); return; }
-    const btn = document.getElementById('compose-send-btn');
+    const to=document.getElementById('compose-to').value.trim(), msg=document.getElementById('compose-msg').value.trim();
+    if(!to||!msg){showToast('Fill in both fields','error');return;}
+    const btn=document.getElementById('compose-send-btn');
     btn.disabled=true; btn.innerHTML='<span class="msym spin">refresh</span> Sending...';
-    try { await api.sendSMS(to, msg); showToast('SMS sent!'); closeComposeModal(); }
-    catch (e) { showToast('Send failed: '+e.message,'error'); }
+    try { await api.sendSMS(to,msg); showToast('SMS sent!'); closeComposeModal(); }
+    catch(e) { showToast('Send failed: '+e.message,'error'); }
     finally { btn.disabled=false; btn.innerHTML='<span class="msym">send</span> Send'; }
   }
 
-  async function sendQuickReply() {
-    const msg = document.getElementById('quick-reply').value.trim();
-    if (!msg||!panelPhone) return;
-    try { await api.sendSMS(panelPhone, msg); document.getElementById('quick-reply').value=''; showToast('Sent!'); }
-    catch (e) { showToast('Send failed: '+e.message,'error'); }
-  }
+  // Check if we came from support.html with a pre-filled compose
+  const pendingComposeTo = sessionStorage.getItem('compose_to');
+  if (pendingComposeTo) { sessionStorage.removeItem('compose_to'); setTimeout(()=>openComposeTo(pendingComposeTo), 300); }
 
   function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
   function timeAgo(dt) {
-    if (!dt) return 'Never';
-    const diff = (Date.now()-new Date(dt+'Z').getTime())/1000;
-    if (diff<60) return 'Just now'; if (diff<3600) return `${Math.floor(diff/60)}m ago`;
-    if (diff<86400) return `${Math.floor(diff/3600)}h ago`; return `${Math.floor(diff/86400)}d ago`;
+    if(!dt) return 'Never';
+    const d=(Date.now()-new Date(dt+'Z').getTime())/1000;
+    if(d<60) return 'Just now'; if(d<3600) return `${Math.floor(d/60)}m ago`;
+    if(d<86400) return `${Math.floor(d/3600)}h ago`; return `${Math.floor(d/86400)}d ago`;
   }
   function fmtTime(dt) { return new Date(dt+'Z').toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
 
