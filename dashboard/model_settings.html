@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SMS CORE — Model Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>body { visibility: hidden; }</style>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      colors: {
+        bg:'#060c1a', surface:'#0d1628', border:'#1e2d4a',
+        accent:'#4f7cff', text:'#c8d8f8', muted:'#4a5980', success:'#22d3a5', error:'#ff5f7e', warn:'#fbbf24',
+      },
+      fontFamily: { mono:['JetBrains Mono','monospace'], sans:['Inter','sans-serif'], display:['Space Grotesk','sans-serif'] }
+    }}
+  }
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #060c1a; color: #c8d8f8; font-family: 'Inter', sans-serif; margin: 0; }
+  .msym { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; vertical-align:middle; }
+  ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:#060c1a} ::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:3px}
+  .sidebar { width:240px; background:#090f1e; border-right:1px solid #1e2d4a; display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:100; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; color:#4a5980; font-size:14px; font-weight:500; cursor:pointer; border-left:2px solid transparent; transition:all 0.15s; text-decoration:none; }
+  .nav-item:hover { color:#c8d8f8; background:rgba(79,124,255,0.05); }
+  .nav-item.active { color:#4f7cff; background:rgba(79,124,255,0.1); border-left-color:#4f7cff; }
+  .main { margin-left:240px; min-height:100vh; }
+  .topbar { height:56px; background:#090f1e; border-bottom:1px solid #1e2d4a; display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:50; }
+  .card { background:#0d1628; border:1px solid #1e2d4a; border-radius:12px; overflow:hidden; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all 0.15s; }
+  .btn-ghost { background:transparent; color:#4a5980; border:1px solid #1e2d4a; }
+  .btn-ghost:hover { color:#c8d8f8; border-color:#2d3f60; }
+  .btn-accent { background:#4f7cff; color:white; }
+  .btn-accent:hover { background:#6b93ff; }
+  .btn-danger { background:rgba(255,95,126,0.12); color:#ff5f7e; border:1px solid rgba(255,95,126,0.2); }
+  .btn-danger:hover { background:rgba(255,95,126,0.22); }
+  .btn-success { background:rgba(34,211,165,0.12); color:#22d3a5; border:1px solid rgba(34,211,165,0.2); }
+  .btn-success:hover { background:rgba(34,211,165,0.22); }
+  .btn-sm { padding:5px 10px; font-size:12px; gap:4px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { padding:11px 16px; text-align:left; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#4a5980; background:#090f1e; border-bottom:1px solid #1e2d4a; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+  tbody tr { border-bottom:1px solid #111e35; transition:background 0.1s; }
+  tbody tr:hover { background:rgba(79,124,255,0.03); }
+  tbody td { padding:10px 16px; vertical-align:middle; }
+  .field-input, .field-select { background:#090f1e; border:1px solid #1e2d4a; color:#c8d8f8; border-radius:6px; padding:6px 10px; font-size:12px; outline:none; transition:border-color 0.2s; font-family:'JetBrains Mono',monospace; }
+  .field-input:focus, .field-select:focus { border-color:#4f7cff; }
+  .table-input { width:160px; }
+  .table-limit-input { width:90px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spin { animation:spin 0.8s linear infinite; display:inline-block; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:#22d3a5; animation:pulse 2s ease-in-out infinite; }
+  .usage-bar-track { width:100%; height:5px; border-radius:3px; background:#1e2d4a; overflow:hidden; }
+  .usage-bar-fill { height:100%; border-radius:3px; transition:width 0.3s; }
+  label.field-label { display:block; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#4a5980; margin-bottom:6px; font-family:'JetBrains Mono',monospace; }
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+  if (!requireAuth()) throw new Error('Auth required');
+  document.body.style.visibility = 'visible';
+</script>
+
+<aside class="sidebar">
+  <div style="padding:20px 16px;border-bottom:1px solid #1e2d4a;margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;background:rgba(79,124,255,0.15);border:1px solid rgba(79,124,255,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center">
+        <span class="msym" style="color:#4f7cff;font-size:18px">terminal</span>
+      </div>
+      <div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:#c8d8f8">SMS CORE</div>
+        <div style="font-size:10px;color:#4a5980;font-family:'JetBrains Mono',monospace">v2.5.0</div>
+      </div>
+    </div>
+  </div>
+  <nav style="flex:1;padding:4px 8px">
+    <a class="nav-item" href="index.html"><span class="msym">forum</span> Message Logs</a>
+    <a class="nav-item" href="user_controls.html"><span class="msym">security</span> User Control</a>
+    <a class="nav-item active" href="model_settings.html"><span class="msym">smart_toy</span> Model Settings</a>
+  </nav>
+  <div style="padding:12px 16px;border-top:1px solid #1e2d4a">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(79,124,255,0.05);border:1px solid #1e2d4a;margin-bottom:8px">
+      <div class="live-dot"></div>
+      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#4a5980">TELNYX ONLINE</div>
+    </div>
+    <button onclick="api.logout()" class="nav-item" style="width:100%;background:none;border:none;text-align:left;border-radius:6px;color:#4a5980">
+      <span class="msym">logout</span> Sign Out
+    </button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="flex:1">
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin:0">Model Settings</h1>
+      <p style="font-size:12px;color:#4a5980;margin:0">Default model, fallback behavior, and per-number overrides</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="loadAll()" id="refresh-btn">
+      <span class="msym" id="refresh-icon">refresh</span> Refresh
+    </button>
+  </div>
+
+  <div style="padding:24px;display:flex;flex-direction:column;gap:20px">
+
+    <!-- Global defaults card -->
+    <div class="card">
+      <div style="padding:14px 18px;border-bottom:1px solid #1e2d4a;display:flex;align-items:center;gap:10px">
+        <span class="msym" style="color:#4f7cff">tune</span>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin:0;flex:1">Global Defaults</h2>
+        <span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#4a5980">Applies to numbers with no override</span>
+      </div>
+      <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end">
+        <div>
+          <label class="field-label">Default Model</label>
+          <input id="g-model" class="field-input" style="width:100%" placeholder="openrouter/free"/>
+        </div>
+        <div>
+          <label class="field-label">Default Fallback</label>
+          <input id="g-fallback" class="field-input" style="width:100%" placeholder="block, or a model slug"/>
+        </div>
+        <div>
+          <label class="field-label">Default Token Limit</label>
+          <input id="g-limit" class="field-input" style="width:100%" placeholder="blank = unlimited" type="number" min="0"/>
+        </div>
+        <div>
+          <button class="btn btn-accent" onclick="saveGlobalSettings()" id="g-save-btn">
+            <span class="msym" style="font-size:16px">save</span> Save Defaults
+          </button>
+        </div>
+      </div>
+      <div style="padding:0 18px 16px;font-size:11px;color:#4a5980;line-height:1.6">
+        <strong style="color:#fbbf24">Fallback field:</strong> type <code style="background:#090f1e;padding:1px 5px;border-radius:4px">block</code> to send a limit-reached message instead of switching models, or a model slug (e.g. <code style="background:#090f1e;padding:1px 5px;border-radius:4px">openrouter/free</code>) to fall back automatically — used both when a number hits its token limit and when the primary model errors out.
+      </div>
+    </div>
+
+    <!-- Per-number table -->
+    <div class="card">
+      <div style="padding:14px 18px;border-bottom:1px solid #1e2d4a;display:flex;align-items:center;gap:10px">
+        <span class="msym" style="color:#22d3a5">phone_iphone</span>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin:0;flex:1">Per-Number Overrides &amp; Usage</h2>
+        <input id="num-search" placeholder="Search numbers..." oninput="filterNumbers()"
+          style="background:#090f1e;border:1px solid #1e2d4a;color:#c8d8f8;border-radius:8px;padding:6px 12px;font-size:12px;outline:none;width:200px;font-family:inherit"/>
+      </div>
+      <div class="table-wrap" style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Phone Number</th>
+              <th>Model Override</th>
+              <th>Fallback Override</th>
+              <th>Token Limit</th>
+              <th>Usage (in / out)</th>
+              <th style="text-align:center">Reset</th>
+            </tr>
+          </thead>
+          <tbody id="numbers-body">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:#4a5980">
+              <span class="msym spin" style="font-size:24px;display:block;margin:0 auto 12px">refresh</span>
+              Loading numbers...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!requireAuth()) throw new Error('Auth required');
+  document.body.style.visibility = 'visible';
+
+  let allNumbers = [];
+  let effectiveDefaults = { ai_model: 'openrouter/free', default_fallback_model: 'block', default_token_limit: '' };
+
+  async function loadAll() {
+    const icon = document.getElementById('refresh-icon');
+    icon.classList.add('spin');
+    try {
+      const [settings, numbers] = await Promise.all([api.getSettings(), api.numbers()]);
+      effectiveDefaults = settings;
+      document.getElementById('g-model').value = settings.ai_model || '';
+      document.getElementById('g-fallback').value = settings.default_fallback_model || '';
+      document.getElementById('g-limit').value = settings.default_token_limit ?? '';
+      allNumbers = numbers;
+      filterNumbers();
+    } catch (e) {
+      showToast('Failed to load: ' + e.message, 'error');
+    } finally {
+      icon.classList.remove('spin');
+    }
+  }
+
+  async function saveGlobalSettings() {
+    const btn = document.getElementById('g-save-btn');
+    btn.disabled = true; btn.innerHTML = '<span class="msym spin">refresh</span> Saving...';
+    try {
+      await api.updateSettings({
+        ai_model: document.getElementById('g-model').value.trim() || 'openrouter/free',
+        default_fallback_model: document.getElementById('g-fallback').value.trim() || 'block',
+        default_token_limit: document.getElementById('g-limit').value.trim(),
+      });
+      showToast('Defaults saved', 'success');
+      loadAll();
+    } catch (e) {
+      showToast('Save failed: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.innerHTML = '<span class="msym" style="font-size:16px">save</span> Save Defaults';
+    }
+  }
+
+  function filterNumbers() {
+    const q = document.getElementById('num-search').value.toLowerCase();
+    const filtered = allNumbers.filter(n => n.phone_number.toLowerCase().includes(q));
+    renderNumbers(filtered);
+  }
+
+  function renderNumbers(rows) {
+    const tbody = document.getElementById('numbers-body');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#4a5980">No numbers found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const phone = r.phone_number;
+      const safeId = phone.replace(/[^a-zA-Z0-9]/g, '_');
+      const limit = r.token_limit; // null = use global, 0 = unlimited for this number
+      const used = (r.tokens_input_used || 0) + (r.tokens_output_used || 0);
+      const effectiveLimit = (limit === null || limit === undefined)
+        ? (effectiveDefaults.default_token_limit ? parseInt(effectiveDefaults.default_token_limit) : null)
+        : (limit === 0 ? null : limit);
+      const pct = effectiveLimit ? Math.min(100, Math.round((used / effectiveLimit) * 100)) : 0;
+      const barColor = pct >= 100 ? '#ff5f7e' : pct >= 75 ? '#fbbf24' : '#22d3a5';
+
+      return `<tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;color:#4f7cff;font-size:12px">${phone}</span></td>
+        <td>
+          <input class="field-input table-input" id="model_${safeId}" value="${r.model || ''}" placeholder="(global default)"
+            onblur="saveNumberField('${phone}', 'model', this.value)" />
+        </td>
+        <td>
+          <input class="field-input table-input" id="fallback_${safeId}" value="${r.fallback_model || ''}" placeholder="(global default)"
+            onblur="saveNumberField('${phone}', 'fallback', this.value)" />
+        </td>
+        <td>
+          <input class="field-input table-limit-input" id="limit_${safeId}" type="number" min="0" value="${limit === null || limit === undefined ? '' : limit}" placeholder="global"
+            onblur="saveNumberField('${phone}', 'limit', this.value)" />
+        </td>
+        <td>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#c8d8f8;margin-bottom:4px">
+            ${(r.tokens_input_used || 0).toLocaleString()} / ${(r.tokens_output_used || 0).toLocaleString()}
+            ${effectiveLimit ? `<span style="color:#4a5980"> · ${pct}% of ${effectiveLimit.toLocaleString()}</span>` : '<span style="color:#4a5980"> · unlimited</span>'}
+          </div>
+          ${effectiveLimit ? `<div class="usage-bar-track"><div class="usage-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>` : ''}
+        </td>
+        <td style="text-align:center">
+          <button class="btn btn-ghost btn-sm" onclick="resetUsage('${phone}')" title="Reset usage to 0">
+            <span class="msym" style="font-size:14px">restart_alt</span>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function saveNumberField(phone, field, value) {
+    try {
+      if (field === 'model') {
+        await api.setNumberModel(phone, value.trim() || null);
+      } else if (field === 'fallback') {
+        await api.setNumberFallback(phone, value.trim() || null);
+      } else if (field === 'limit') {
+        const v = value.trim();
+        await api.setNumberLimit(phone, v === '' ? null : parseInt(v, 10));
+      }
+      showToast(`Updated ${field} for ${phone}`, 'success');
+      loadAll();
+    } catch (e) {
+      showToast('Update failed: ' + e.message, 'error');
+    }
+  }
+
+  function resetUsage(phone) {
+    showConfirm(`Reset token usage for <strong style="color:#4f7cff;font-family:'JetBrains Mono',monospace">${phone}</strong> back to 0?`, async () => {
+      try {
+        await api.resetNumberUsage(phone);
+        showToast('Usage reset', 'success');
+        loadAll();
+      } catch (e) {
+        showToast('Reset failed: ' + e.message, 'error');
+      }
+    });
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
