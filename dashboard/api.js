@@ -3,16 +3,11 @@
 const getApiUrl = () => sessionStorage.getItem('sms_api') || window.SMS_CORE_API_URL || '';
 const getToken = () => sessionStorage.getItem('sms_token') || '';
 
-// Auth guard — redirect to login if no token
 function requireAuth() {
-  if (!getToken()) {
-    window.location.href = 'login.html';
-    return false;
-  }
+  if (!getToken()) { window.location.href = 'login.html'; return false; }
   return true;
 }
 
-// Generic fetch wrapper
 async function apiFetch(path, options = {}) {
   const url = getApiUrl() + path;
   const resp = await fetch(url, {
@@ -24,17 +19,8 @@ async function apiFetch(path, options = {}) {
     },
   });
 
-  if (resp.status === 401) {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-    throw new Error('Unauthorized');
-  }
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({ error: resp.statusText }));
-    throw new Error(err.error || 'API error');
-  }
-
+  if (resp.status === 401) { sessionStorage.clear(); window.location.href = 'login.html'; throw new Error('Unauthorized'); }
+  if (!resp.ok) { const err = await resp.json().catch(() => ({ error: resp.statusText })); throw new Error(err.error || 'API error'); }
   return resp.json();
 }
 
@@ -46,7 +32,9 @@ const api = {
   stats: () => api.get('/api/stats'),
   contacts: () => api.get('/api/contacts'),
   contactConversations: (phone) => api.get(`/api/contacts/${encodeURIComponent(phone)}/conversations`),
-  conversationMessages: (id) => api.get(`/api/conversations/${id}/messages`),
+  contactSupport: (phone) => api.get(`/api/contacts/${encodeURIComponent(phone)}/support`),
+
+  // Note: conversationMessages removed — messages are encrypted and not readable by admin
 
   sendSMS: (to, message) => api.post('/api/send', { to, message }),
 
@@ -57,6 +45,10 @@ const api = {
   whitelist: () => api.get('/api/whitelist'),
   addWhitelist: (phone, label) => api.post('/api/whitelist', { phone_number: phone, label }),
   removeWhitelist: (phone) => api.delete(`/api/whitelist/${encodeURIComponent(phone)}`),
+
+  supportTickets: () => api.get('/api/support'),
+  closeTicket: (id) => api.post(`/api/support/${id}/close`, {}),
+  supportOpenCount: () => api.get('/api/support/open-count'),
 
   // Global model/fallback/limit settings
   getSettings: () => api.get('/api/settings'),
@@ -73,44 +65,59 @@ const api = {
   logout: () => { sessionStorage.clear(); window.location.href = 'login.html'; },
 };
 
-// Shared toast notification system
-function showToast(message, type = 'success') {
-  const colors = { success: 'bg-green-900/80 border-green-500/40 text-green-300', error: 'bg-red-900/80 border-red-500/40 text-red-300', info: 'bg-blue-900/80 border-blue-500/40 text-blue-300' };
-  const icons = { success: 'check_circle', error: 'error', info: 'info' };
-  const t = document.createElement('div');
-  t.className = `fixed bottom-6 right-6 z-[999] flex items-center gap-3 px-5 py-3.5 rounded-xl border backdrop-blur ${colors[type]} shadow-2xl`;
-  t.style.cssText = 'animation: slideInRight 0.3s ease; font-family: Inter, sans-serif; font-size: 14px;';
-  t.innerHTML = `<span style="font-family:'Material Symbols Outlined';font-size:18px">${icons[type]}</span><span>${message}</span>`;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.animation = 'slideOutRight 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+// ---- Sidebar support badge (called on every page) ----
+async function updateSupportBadge() {
+  try {
+    const { count } = await api.supportOpenCount();
+    const badge = document.getElementById('support-badge');
+    if (!badge) return;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  } catch (_) {}
 }
 
-// Shared modal
+// ---- Toast ----
+function showToast(message, type = 'success') {
+  const colors = {
+    success: 'background:#2a3f2e;border-color:#4a8f5a;color:#7dd99a',
+    error:   'background:#3f2a2e;border-color:#8f4a55;color:#d97d8a',
+    info:    'background:#2a333f;border-color:#4a6a8f;color:#7daad9',
+  };
+  const icons = { success: 'check_circle', error: 'error', info: 'info' };
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;border:1px solid;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,0.3);font-family:'DM Sans',sans-serif;font-size:13px;${colors[type]};animation:toastIn 0.25s ease`;
+  t.innerHTML = `<span style="font-family:'Material Symbols Outlined';font-size:17px">${icons[type]}</span><span>${message}</span>`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut 0.25s ease forwards'; setTimeout(() => t.remove(), 250); }, 3000);
+}
+
+// ---- Confirm modal ----
 function showConfirm(message, onConfirm) {
   const overlay = document.createElement('div');
-  overlay.className = 'fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
   overlay.innerHTML = `
-    <div class="bg-[#0d1628] border border-[#1e2d4a] rounded-2xl p-7 max-w-sm w-full shadow-2xl" style="font-family:Inter,sans-serif">
-      <div class="flex items-start gap-4 mb-6">
-        <span style="font-family:'Material Symbols Outlined';font-size:24px;color:#ff5f7e;flex-shrink:0">warning</span>
-        <p style="color:#c8d8f8;font-size:15px;line-height:1.6">${message}</p>
+    <div style="background:#252d3d;border:1px solid #3d4a63;border-radius:14px;padding:28px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);font-family:'DM Sans',sans-serif">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:22px">
+        <span style="font-family:'Material Symbols Outlined';font-size:22px;color:#e07a7a;flex-shrink:0;margin-top:1px">warning</span>
+        <p style="color:#c8d4e8;font-size:14px;line-height:1.6;margin:0">${message}</p>
       </div>
-      <div class="flex gap-3 justify-end">
-        <button id="modal-cancel" class="px-5 py-2.5 rounded-lg text-sm" style="background:#1e2d4a;color:#c8d8f8;border:1px solid #2d3f60">Cancel</button>
-        <button id="modal-confirm" class="px-5 py-2.5 rounded-lg text-sm font-semibold" style="background:#ff5f7e;color:white">Confirm</button>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button id="mc" style="padding:8px 18px;border-radius:8px;background:#1e2433;border:1px solid #3d4a63;color:#7a8ba8;font-size:13px;cursor:pointer;font-family:inherit">Cancel</button>
+        <button id="mok" style="padding:8px 18px;border-radius:8px;background:#e07a7a;border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Confirm</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
-  overlay.querySelector('#modal-cancel').onclick = () => overlay.remove();
-  overlay.querySelector('#modal-confirm').onclick = () => { overlay.remove(); onConfirm(); };
+  overlay.querySelector('#mc').onclick = () => overlay.remove();
+  overlay.querySelector('#mok').onclick = () => { overlay.remove(); onConfirm(); };
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 }
 
-// Inject global animation styles once
+// ---- Global styles ----
 const styleTag = document.createElement('style');
 styleTag.textContent = `
-  @keyframes slideInRight { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-  @keyframes slideOutRight { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
-  .msym { font-family:'Material Symbols Outlined'; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+  @keyframes toastIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spin { animation:spin 0.7s linear infinite; display:inline-block; }
 `;
 document.head.appendChild(styleTag);
