@@ -27,6 +27,35 @@ function checkAuth(request, env) {
   return token === env.ADMIN_SECRET;
 }
 
+// Simple in-memory cache for the OpenRouter model catalog (per-isolate, ~10 min TTL).
+// The /models endpoint is public (no API key needed) and rarely changes within a session.
+let modelsCache = { data: null, fetchedAt: 0 };
+const MODELS_CACHE_TTL_MS = 10 * 60 * 1000;
+
+async function fetchOpenRouterModels() {
+  const now = Date.now();
+  if (modelsCache.data && (now - modelsCache.fetchedAt) < MODELS_CACHE_TTL_MS) {
+    return modelsCache.data;
+  }
+  const resp = await fetch('https://openrouter.ai/api/v1/models');
+  if (!resp.ok) {
+    throw new Error(`OpenRouter models fetch failed: ${resp.status}`);
+  }
+  const data = await resp.json();
+  // Slim down to just what the dashboard needs
+  const slim = (data.data || []).map(m => ({
+    id: m.id,
+    name: m.name,
+    context_length: m.context_length || null,
+    is_free: m.id.endsWith(':free'),
+    prompt_price: m.pricing?.prompt || null,
+    completion_price: m.pricing?.completion || null,
+  })).sort((a, b) => a.id.localeCompare(b.id));
+
+  modelsCache = { data: slim, fetchedAt: now };
+  return slim;
+}
+
 export default {
   async fetch(request, env) {
     // Handle CORS preflight
@@ -198,6 +227,20 @@ export default {
       const phone = decodeURIComponent(wlMatch[1]);
       await db.prepare(`DELETE FROM whitelist WHERE phone_number = ?`).bind(phone).run();
       return json({ success: true });
+    }
+
+    // =====================
+    //  OPENROUTER MODEL CATALOG
+    // =====================
+
+    // GET /api/openrouter-models — full list of available OpenRouter models (for dashboard pickers)
+    if (path === '/api/openrouter-models' && request.method === 'GET') {
+      try {
+        const models = await fetchOpenRouterModels();
+        return json(models);
+      } catch (err) {
+        return json({ error: 'Failed to fetch model list', detail: err.message }, 502);
+      }
     }
 
     // =====================
