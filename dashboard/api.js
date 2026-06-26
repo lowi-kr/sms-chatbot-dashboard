@@ -61,6 +61,7 @@ const api = {
   // Global model/fallback/limit settings
   getSettings: () => api.get('/api/settings'),
   updateSettings: (settings) => api.post('/api/settings', settings),
+  getOpenRouterModels: () => api.get('/api/openrouter-models'),
 
   // Per-number model/fallback/limit + usage
   numbers: () => api.get('/api/numbers'),
