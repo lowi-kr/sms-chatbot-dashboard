@@ -59,7 +59,8 @@
   .model-picker-trigger { display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:pointer; background:#090f1e; border:1px solid #1e2d4a; border-radius:6px; padding:6px 10px; font-size:12px; font-family:'JetBrains Mono',monospace; color:#c8d8f8; }
   .model-picker-trigger:hover { border-color:#2d3f60; }
   .model-picker-trigger .ph { color:#4a5980; }
-  .model-picker-trigger .chev { color:#4a5980; font-size:10px; flex-shrink:0; }
+  .model-picker-trigger .chev { color:#4a5980; font-size:10px; flex-shrink:0; transition: transform 0.15s ease; display:inline-block; }
+  .model-picker.open .chev { transform: rotate(180deg); }
   .model-dropdown { position:absolute; top:calc(100% + 4px); left:0; z-index:60; background:#0d1628; border:1px solid #2d3f60; border-radius:10px; box-shadow:0 16px 40px rgba(0,0,0,0.55); width:300px; max-height:320px; display:none; flex-direction:column; overflow:hidden; }
   .model-dropdown.open { display:flex; }
   .model-dropdown.align-right { right:0; left:auto; }
@@ -144,7 +145,16 @@
         </div>
         <div>
           <label class="field-label">Default Fallback</label>
-          <input id="g-fallback" class="field-input" style="width:100%;padding:6px 10px" placeholder="block, or a model slug"/>
+          <div class="model-picker" id="picker_fallback_global">
+            <div class="model-picker-trigger" onclick="toggleDropdown('fallback_global')">
+              <span id="picker_fallback_global_label" class="ph">block</span>
+              <span class="chev">▾</span>
+            </div>
+            <div class="model-dropdown" id="dropdown_fallback_global">
+              <input class="model-search" placeholder="Search models..." oninput="filterDropdown('fallback_global', this.value)" />
+              <div class="model-list" id="list_fallback_global"><div class="model-empty">Loading...</div></div>
+            </div>
+          </div>
         </div>
         <div>
           <label class="field-label">Default Token Limit</label>
@@ -157,7 +167,7 @@
         </div>
       </div>
       <div style="padding:0 18px 16px;font-size:11px;color:#4a5980;line-height:1.6">
-        <strong style="color:#fbbf24">Fallback field:</strong> type <code style="background:#090f1e;padding:1px 5px;border-radius:4px">block</code> to send a limit-reached message instead of switching models, or a model slug (e.g. <code style="background:#090f1e;padding:1px 5px;border-radius:4px">openrouter/free</code>) to fall back automatically — used both when a number hits its token limit and when the primary model errors out.
+        <strong style="color:#fbbf24">Fallback field:</strong> pick <code style="background:#090f1e;padding:1px 5px;border-radius:4px">block</code> from the dropdown to send a limit-reached message instead of switching models, or pick a model to fall back to automatically — used both when a number hits its token limit and when the primary model errors out.
       </div>
     </div>
 
@@ -214,9 +224,10 @@
       allModels = models || [];
 
       setPickerLabel('global', settings.ai_model || '');
-      document.getElementById('g-fallback').value = settings.default_fallback_model || '';
+      setPickerLabel('fallback_global', settings.default_fallback_model === 'block' ? '' : (settings.default_fallback_model || ''));
       document.getElementById('g-limit').value = settings.default_token_limit ?? '';
       renderDropdownList('global', allModels);
+      renderDropdownList('fallback_global', allModels);
 
       allNumbers = numbers;
       filterNumbers();
@@ -230,10 +241,12 @@
   // ---- Model picker dropdown (shared component, keyed by id string) ----
   function toggleDropdown(key) {
     const dd = document.getElementById('dropdown_' + cssKey(key));
+    const picker = document.getElementById('picker_' + cssKey(key));
     const isOpen = dd.classList.contains('open');
     closeAllDropdowns();
     if (!isOpen) {
       dd.classList.add('open');
+      if (picker) picker.classList.add('open');
       openDropdownKey = key;
       const search = dd.querySelector('.model-search');
       if (search) { search.value = ''; search.focus(); }
@@ -243,6 +256,7 @@
 
   function closeAllDropdowns() {
     document.querySelectorAll('.model-dropdown.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.model-picker.open').forEach(el => el.classList.remove('open'));
     openDropdownKey = null;
   }
 
@@ -256,12 +270,17 @@
     const label = document.getElementById('picker_' + cssKey(key) + '_label');
     if (!label) return;
     if (modelId) { label.textContent = modelId; label.classList.remove('ph'); }
-    else { label.textContent = key === 'global' ? 'openrouter/free' : '(global default)'; label.classList.add('ph'); }
+    else if (key === 'global') { label.textContent = 'openrouter/free'; label.classList.add('ph'); }
+    else if (key === 'fallback_global') { label.textContent = 'block'; label.classList.add('ph'); }
+    else { label.textContent = '(global default)'; label.classList.add('ph'); }
   }
 
   function renderDropdownList(key, models, filterText) {
     const list = document.getElementById('list_' + cssKey(key));
     if (!list) return;
+    const isFallback = key.startsWith('fallback_');
+    const isGlobalScope = key === 'global' || key === 'fallback_global';
+
     let filtered = models;
     if (filterText) {
       const q = filterText.toLowerCase();
@@ -269,10 +288,13 @@
     }
     if (!models.length) { list.innerHTML = '<div class="model-empty">No models loaded</div>'; return; }
 
-    const defaultOpt = key === 'global'
-      ? ''
-      : '<div class="model-option" data-model="">' +
-          '<span class="mid">(use global default)</span></div>';
+    let pinnedOpts = '';
+    if (isFallback) {
+      pinnedOpts += '<div class="model-option" data-model="block"><span class="mid">block</span><span class="mtag" style="color:#ff5f7e">SEND LIMIT MSG</span></div>';
+    }
+    if (!isGlobalScope) {
+      pinnedOpts += '<div class="model-option" data-model=""><span class="mid">(use global default)</span></div>';
+    }
 
     const optsHtml = filtered.slice(0, 400).map(m =>
       '<div class="model-option" data-model="' + escAttr(m.id) + '">' +
@@ -281,7 +303,7 @@
       '</div>'
     ).join('');
 
-    list.innerHTML = defaultOpt + (optsHtml || '<div class="model-empty">No matching models</div>');
+    list.innerHTML = pinnedOpts + (optsHtml || (pinnedOpts ? '' : '<div class="model-empty">No matching models</div>'));
 
     list.querySelectorAll('.model-option').forEach(opt => {
       opt.onclick = () => onPickModel(key, opt.getAttribute('data-model'));
@@ -298,8 +320,14 @@
   function onPickModel(key, modelId) {
     setPickerLabel(key, modelId);
     closeAllDropdowns();
-    if (key === 'global') return; // saved via "Save Defaults" button
-    // Per-number row: key is the phone number, save immediately
+    if (key === 'global' || key === 'fallback_global') return; // saved via "Save Defaults" button
+    if (key.startsWith('fallback_')) {
+      // Per-number fallback row: key is "fallback_<phone>"
+      const phone = key.slice('fallback_'.length);
+      saveNumberField(phone, 'fallback', modelId);
+      return;
+    }
+    // Per-number model row: key is the phone number, save immediately
     saveNumberField(key, 'model', modelId);
   }
 
@@ -310,9 +338,13 @@
     try {
       const modelLabel = document.getElementById('picker_global_label');
       const chosenModel = modelLabel.classList.contains('ph') ? '' : modelLabel.textContent;
+
+      const fallbackLabel = document.getElementById('picker_fallback_global_label');
+      const chosenFallback = fallbackLabel.classList.contains('ph') ? '' : fallbackLabel.textContent;
+
       await api.updateSettings({
         ai_model: chosenModel || 'openrouter/free',
-        default_fallback_model: document.getElementById('g-fallback').value.trim() || 'block',
+        default_fallback_model: chosenFallback || 'block',
         default_token_limit: document.getElementById('g-limit').value.trim(),
       });
       showToast('Defaults saved', 'success');
@@ -381,14 +413,21 @@
 
       // Fallback override cell
       const tdFallback = document.createElement('td');
-      const fallbackInput = document.createElement('input');
-      fallbackInput.className = 'field-input';
-      fallbackInput.style.width = '140px';
-      fallbackInput.id = 'fallback_' + safeId;
-      fallbackInput.value = r.fallback_model || '';
-      fallbackInput.placeholder = '(global default)';
-      fallbackInput.addEventListener('blur', () => saveNumberField(phone, 'fallback', fallbackInput.value));
-      tdFallback.appendChild(fallbackInput);
+      const fallbackKey = 'fallback_' + phone;
+      const fallbackSafeId = cssKey(fallbackKey);
+      tdFallback.innerHTML =
+        '<div class="model-picker" id="picker_' + fallbackSafeId + '">' +
+          '<div class="model-picker-trigger" style="width:140px">' +
+            '<span id="picker_' + fallbackSafeId + '_label" class="ph">' + escHtml(r.fallback_model || '(global default)') + '</span>' +
+            '<span class="chev">▾</span>' +
+          '</div>' +
+          '<div class="model-dropdown" id="dropdown_' + fallbackSafeId + '">' +
+            '<input class="model-search" placeholder="Search models..." />' +
+            '<div class="model-list" id="list_' + fallbackSafeId + '"><div class="model-empty">Loading...</div></div>' +
+          '</div>' +
+        '</div>';
+      tdFallback.querySelector('.model-picker-trigger').addEventListener('click', () => toggleDropdown(fallbackKey));
+      tdFallback.querySelector('.model-search').addEventListener('input', (e) => filterDropdown(fallbackKey, e.target.value));
       tr.appendChild(tdFallback);
 
       // Token limit cell
