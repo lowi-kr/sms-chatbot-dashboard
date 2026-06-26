@@ -337,7 +337,9 @@
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#4a5980">No numbers found</td></tr>';
       return;
     }
-    tbody.innerHTML = rows.map(r => {
+
+    tbody.innerHTML = '';
+    for (const r of rows) {
       const phone = r.phone_number;
       const safeId = cssKey(phone);
       const limit = r.token_limit;
@@ -348,42 +350,83 @@
       const pct = effectiveLimit ? Math.min(100, Math.round((used / effectiveLimit) * 100)) : 0;
       const barColor = pct >= 100 ? '#ff5f7e' : pct >= 75 ? '#fbbf24' : '#22d3a5';
 
-      return '<tr>' +
-        '<td><span style="font-family:\\'JetBrains Mono\\',monospace;color:#4f7cff;font-size:12px">' + phone + '</span></td>' +
-        '<td>' +
-          '<div class="model-picker" id="picker_' + safeId + '">' +
-            '<div class="model-picker-trigger" style="width:170px" onclick="toggleDropdown(\\'' + phone + '\\')">' +
-              '<span id="picker_' + safeId + '_label" class="ph">' + (r.model || '(global default)') + '</span>' +
-              '<span class="chev">▾</span>' +
-            '</div>' +
-            '<div class="model-dropdown" id="dropdown_' + safeId + '">' +
-              '<input class="model-search" placeholder="Search models..." oninput="filterDropdown(\\'' + phone + '\\', this.value)" />' +
-              '<div class="model-list" id="list_' + safeId + '"><div class="model-empty">Loading...</div></div>' +
-            '</div>' +
+      const tr = document.createElement('tr');
+
+      // Phone number cell
+      const tdPhone = document.createElement('td');
+      const phoneSpan = document.createElement('span');
+      phoneSpan.style.fontFamily = "'JetBrains Mono', monospace";
+      phoneSpan.style.color = '#4f7cff';
+      phoneSpan.style.fontSize = '12px';
+      phoneSpan.textContent = phone;
+      tdPhone.appendChild(phoneSpan);
+      tr.appendChild(tdPhone);
+
+      // Model picker cell
+      const tdModel = document.createElement('td');
+      tdModel.innerHTML =
+        '<div class="model-picker" id="picker_' + safeId + '">' +
+          '<div class="model-picker-trigger" style="width:170px">' +
+            '<span id="picker_' + safeId + '_label" class="ph">' + escHtml(r.model || '(global default)') + '</span>' +
+            '<span class="chev">▾</span>' +
           '</div>' +
-        '</td>' +
-        '<td>' +
-          '<input class="field-input" style="width:140px" id="fallback_' + safeId + '" value="' + (r.fallback_model || '') + '" placeholder="(global default)" ' +
-            'onblur="saveNumberField(\\'' + phone + '\\', \\'fallback\\', this.value)" />' +
-        '</td>' +
-        '<td>' +
-          '<input class="field-input table-limit-input" id="limit_' + safeId + '" type="number" min="0" value="' + (limit === null || limit === undefined ? '' : limit) + '" placeholder="global" ' +
-            'onblur="saveNumberField(\\'' + phone + '\\', \\'limit\\', this.value)" />' +
-        '</td>' +
-        '<td>' +
-          '<div style="font-family:\\'JetBrains Mono\\',monospace;font-size:11px;color:#c8d8f8;margin-bottom:4px">' +
-            (r.tokens_input_used || 0).toLocaleString() + ' / ' + (r.tokens_output_used || 0).toLocaleString() +
-            (effectiveLimit ? ' <span style="color:#4a5980"> · ' + pct + '% of ' + effectiveLimit.toLocaleString() + '</span>' : ' <span style="color:#4a5980"> · unlimited</span>') +
+          '<div class="model-dropdown" id="dropdown_' + safeId + '">' +
+            '<input class="model-search" placeholder="Search models..." />' +
+            '<div class="model-list" id="list_' + safeId + '"><div class="model-empty">Loading...</div></div>' +
           '</div>' +
-          (effectiveLimit ? '<div class="usage-bar-track"><div class="usage-bar-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' : '') +
-        '</td>' +
-        '<td style="text-align:center">' +
-          '<button class="btn btn-ghost btn-sm" onclick="resetUsage(\\'' + phone + '\\')" title="Reset usage to 0">' +
-            '<span class="msym" style="font-size:14px">restart_alt</span>' +
-          '</button>' +
-        '</td>' +
-      '</tr>';
-    }).join('');
+        '</div>';
+      tdModel.querySelector('.model-picker-trigger').addEventListener('click', () => toggleDropdown(phone));
+      tdModel.querySelector('.model-search').addEventListener('input', (e) => filterDropdown(phone, e.target.value));
+      tr.appendChild(tdModel);
+
+      // Fallback override cell
+      const tdFallback = document.createElement('td');
+      const fallbackInput = document.createElement('input');
+      fallbackInput.className = 'field-input';
+      fallbackInput.style.width = '140px';
+      fallbackInput.id = 'fallback_' + safeId;
+      fallbackInput.value = r.fallback_model || '';
+      fallbackInput.placeholder = '(global default)';
+      fallbackInput.addEventListener('blur', () => saveNumberField(phone, 'fallback', fallbackInput.value));
+      tdFallback.appendChild(fallbackInput);
+      tr.appendChild(tdFallback);
+
+      // Token limit cell
+      const tdLimit = document.createElement('td');
+      const limitInput = document.createElement('input');
+      limitInput.className = 'field-input table-limit-input';
+      limitInput.type = 'number';
+      limitInput.min = '0';
+      limitInput.id = 'limit_' + safeId;
+      limitInput.value = (limit === null || limit === undefined) ? '' : limit;
+      limitInput.placeholder = 'global';
+      limitInput.addEventListener('blur', () => saveNumberField(phone, 'limit', limitInput.value));
+      tdLimit.appendChild(limitInput);
+      tr.appendChild(tdLimit);
+
+      // Usage cell
+      const tdUsage = document.createElement('td');
+      const usageLine = effectiveLimit
+        ? `${(r.tokens_input_used || 0).toLocaleString()} / ${(r.tokens_output_used || 0).toLocaleString()} <span style="color:#4a5980"> · ${pct}% of ${effectiveLimit.toLocaleString()}</span>`
+        : `${(r.tokens_input_used || 0).toLocaleString()} / ${(r.tokens_output_used || 0).toLocaleString()} <span style="color:#4a5980"> · unlimited</span>`;
+      tdUsage.innerHTML =
+        `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#c8d8f8;margin-bottom:4px">${usageLine}</div>` +
+        (effectiveLimit ? `<div class="usage-bar-track"><div class="usage-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>` : '');
+      tr.appendChild(tdUsage);
+
+      // Reset button cell
+      const tdReset = document.createElement('td');
+      tdReset.style.textAlign = 'center';
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'btn btn-ghost btn-sm';
+      resetBtn.title = 'Reset usage to 0';
+      resetBtn.innerHTML = '<span class="msym" style="font-size:14px">restart_alt</span>';
+      resetBtn.addEventListener('click', () => resetUsage(phone));
+      tdReset.appendChild(resetBtn);
+      tr.appendChild(tdReset);
+
+      tbody.appendChild(tr);
+    }
   }
 
   async function saveNumberField(phone, field, value) {
@@ -404,7 +447,7 @@
   }
 
   function resetUsage(phone) {
-    showConfirm('Reset token usage for <strong style="color:#4f7cff;font-family:\\'JetBrains Mono\\',monospace">' + phone + '</strong> back to 0?', async () => {
+    showConfirm(`Reset token usage for <strong style="color:#4f7cff;font-family:'JetBrains Mono',monospace">${phone}</strong> back to 0?`, async () => {
       try {
         await api.resetNumberUsage(phone);
         showToast('Usage reset', 'success');
