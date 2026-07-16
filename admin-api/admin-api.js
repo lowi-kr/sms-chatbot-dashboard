@@ -244,13 +244,13 @@ export default {
     }
 
     // =====================
-    //  GLOBAL SETTINGS (default model / fallback / token limit)
+    //  GLOBAL SETTINGS (default model / fallback / token limit / naming model)
     // =====================
 
-    // GET /api/settings — current global AI model + fallback + limit
+    // GET /api/settings — current global AI model + fallback + limit + naming model
     if (path === '/api/settings' && request.method === 'GET') {
       const rows = await db.prepare(
-        `SELECT key, value FROM settings WHERE key IN ('ai_model', 'default_fallback_model', 'default_token_limit')`
+        `SELECT key, value FROM settings WHERE key IN ('ai_model', 'default_fallback_model', 'default_token_limit', 'naming_model')`
       ).all();
       const map = {};
       for (const r of rows.results) map[r.key] = r.value;
@@ -258,14 +258,15 @@ export default {
         ai_model: map.ai_model || 'openrouter/free',
         default_fallback_model: map.default_fallback_model || 'block',
         default_token_limit: map.default_token_limit ?? '',
+        naming_model: map.naming_model || 'meta-llama/llama-3.1-8b-instruct:free',
       });
     }
 
     // POST /api/settings — update one or more global settings
-    // Body: { ai_model?, default_fallback_model?, default_token_limit? }
+    // Body: { ai_model?, default_fallback_model?, default_token_limit?, naming_model? }
     if (path === '/api/settings' && request.method === 'POST') {
       const body = await request.json().catch(() => ({}));
-      const allowedKeys = ['ai_model', 'default_fallback_model', 'default_token_limit'];
+      const allowedKeys = ['ai_model', 'default_fallback_model', 'default_token_limit', 'naming_model'];
       const updates = Object.entries(body).filter(([k]) => allowedKeys.includes(k));
       if (!updates.length) return json({ error: 'No valid settings provided' }, 400);
 

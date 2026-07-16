@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,7 +149,7 @@
         <span style="font-size:14px;font-weight:600;flex:1">Global Defaults</span>
         <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)">Applies when a number has no override</span>
       </div>
-      <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end">
+      <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:16px;align-items:end">
         <div>
           <label class="field-label">Default Model</label>
           <div class="model-picker" id="picker_global">
@@ -178,6 +177,19 @@
           </div>
         </div>
         <div>
+          <label class="field-label">Naming Model</label>
+          <div class="model-picker" id="picker_naming_global">
+            <div class="model-picker-trigger" onclick="toggleDropdown('naming_global')">
+              <span id="picker_naming_global_label" class="ph">meta-llama/llama-3.1-8b-instruct:free</span>
+              <span class="chev">▾</span>
+            </div>
+            <div class="model-dropdown" id="dropdown_naming_global">
+              <input class="model-search" placeholder="Search models..." oninput="filterDropdown('naming_global', this.value)" />
+              <div class="model-list" id="list_naming_global"><div class="model-empty">Loading...</div></div>
+            </div>
+          </div>
+        </div>
+        <div>
           <label class="field-label">Default Token Limit</label>
           <input id="g-limit" class="field-input" placeholder="blank = unlimited" type="number" min="0"/>
         </div>
@@ -190,7 +202,7 @@
       <div style="padding:0 18px 16px">
         <div class="info-strip">
           <span class="msym" style="font-size:16px;flex-shrink:0;margin-top:1px">info</span>
-          <span><strong style="color:var(--warn)">Fallback field:</strong> pick <code style="background:var(--bg);padding:1px 5px;border-radius:4px">block</code> to send a limit-reached message instead of switching models, or pick a model to fall back to automatically — used both when a number hits its token limit and when the primary model errors out.</span>
+          <span><strong style="color:var(--warn)">Fallback field:</strong> pick <code style="background:var(--bg);padding:1px 5px;border-radius:4px">block</code> to send a limit-reached message instead of switching models, or pick a model to fall back to automatically — used both when a number hits its token limit and when the primary model errors out. <strong style="color:var(--accent)">Naming Model:</strong> used only to auto-generate conversation titles after a few messages — separate from chat models and never applies per-number overrides.</span>
         </div>
       </div>
     </div>
@@ -230,7 +242,7 @@
 <script>
   let allNumbers = [];
   let allModels = [];
-  let effectiveDefaults = { ai_model: 'openrouter/free', default_fallback_model: 'block', default_token_limit: '' };
+  let effectiveDefaults = { ai_model: 'openrouter/free', default_fallback_model: 'block', default_token_limit: '', naming_model: 'meta-llama/llama-3.1-8b-instruct:free' };
   let openDropdownKey = null;
 
   async function loadAll() {
@@ -245,9 +257,11 @@
 
       setPickerLabel('global', settings.ai_model || '');
       setPickerLabel('fallback_global', settings.default_fallback_model === 'block' ? '' : (settings.default_fallback_model || ''));
+      setPickerLabel('naming_global', settings.naming_model || '');
       document.getElementById('g-limit').value = settings.default_token_limit ?? '';
       renderDropdownList('global', allModels);
       renderDropdownList('fallback_global', allModels);
+      renderDropdownList('naming_global', allModels);
 
       allNumbers = numbers;
       filterNumbers();
@@ -293,6 +307,7 @@
     if (modelId) { label.textContent = modelId; label.classList.remove('ph'); }
     else if (key === 'global') { label.textContent = 'openrouter/free'; label.classList.add('ph'); }
     else if (key === 'fallback_global') { label.textContent = 'block'; label.classList.add('ph'); }
+    else if (key === 'naming_global') { label.textContent = 'meta-llama/llama-3.1-8b-instruct:free'; label.classList.add('ph'); }
     else { label.textContent = '(global default)'; label.classList.add('ph'); }
   }
 
@@ -300,7 +315,7 @@
     const list = document.getElementById('list_' + cssKey(key));
     if (!list) return;
     const isFallback = key.startsWith('fallback_');
-    const isGlobalScope = key === 'global' || key === 'fallback_global';
+    const isGlobalScope = key === 'global' || key === 'fallback_global' || key === 'naming_global';
 
     let filtered = models;
     if (filterText) {
@@ -342,7 +357,7 @@
   function onPickModel(key, modelId) {
     setPickerLabel(key, modelId);
     closeAllDropdowns();
-    if (key === 'global' || key === 'fallback_global') return; // saved via "Save Defaults" button
+    if (key === 'global' || key === 'fallback_global' || key === 'naming_global') return; // saved via "Save Defaults" button
     if (key.startsWith('fallback_')) {
       const phone = key.slice('fallback_'.length);
       saveNumberField(phone, 'fallback', modelId);
@@ -362,10 +377,14 @@
       const fallbackLabel = document.getElementById('picker_fallback_global_label');
       const chosenFallback = fallbackLabel.classList.contains('ph') ? '' : fallbackLabel.textContent;
 
+      const namingLabel = document.getElementById('picker_naming_global_label');
+      const chosenNaming = namingLabel.classList.contains('ph') ? '' : namingLabel.textContent;
+
       await api.updateSettings({
         ai_model: chosenModel || 'openrouter/free',
         default_fallback_model: chosenFallback || 'block',
         default_token_limit: document.getElementById('g-limit').value.trim(),
+        naming_model: chosenNaming || 'meta-llama/llama-3.1-8b-instruct:free',
       });
       showToast('Defaults saved', 'success');
       loadAll();
