@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/dashboard/api/config.js"],
+  "include": ["/functions/api/config.js"],
   "exclude": []
 }
