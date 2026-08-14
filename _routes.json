@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/functions/api/config.js"],
+  "include": ["/config.js"],
   "exclude": []
 }
